@@ -5,7 +5,7 @@ import seaborn as sns
 from tkinter import Tk, Label, Button, Entry, IntVar, StringVar, messagebox, ttk
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
-
+from matplotlib.ticker import MaxNLocator
 # Kết nối cơ sở dữ liệu
 def connect_to_db():
     conn = pyodbc.connect(
@@ -112,10 +112,6 @@ def get_employee_seniority(conn):
     return df
 
 
-# Các hàm vẽ biểu đồ
-import matplotlib.pyplot as plt
-import seaborn as sns
-from matplotlib.ticker import MaxNLocator
 
 def plot_employee_distribution_by_department(df):
     # Tạo kích thước biểu đồ
