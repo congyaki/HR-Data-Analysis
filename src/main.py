@@ -101,12 +101,13 @@ def get_seniority_level_descriptions(conn):
     df = pd.read_sql(query, conn)
     return df
 
-def get_employee_seniority(conn):
-    query = """
+def get_employee_seniority(conn, order='DESC'):
+    query = f"""
     SELECT s.LevelName, COUNT(es.EmployeeId) AS EmployeeCount
     FROM EmployeeSeniority es
     JOIN SeniorityLevels s ON es.SeniorityLevelId = s.SeniorityLevelId
-    GROUP BY s.LevelName;
+    GROUP BY s.LevelName
+    ORDER BY EmployeeCount {order};  -- Sắp xếp theo số lượng nhân viên
     """
     df = pd.read_sql(query, conn)
     return df
@@ -397,92 +398,136 @@ def show_employee_seniority():
 # Tạo giao diện Tkinter
 root = Tk()
 root.title("Phân tích dữ liệu nhân sự")
-root.geometry("400x400")
+root.geometry("600x600")
 
+# Thiết lập màu nền tối cho cửa sổ chính
+root.configure(bg='#F5F5F5')
+
+# Tạo một Notebook (tab control)
 notebook = ttk.Notebook(root)
+
+# Thiết lập style cho ttk để thay đổi màu sắc widget
+style = ttk.Style()
+style.configure('TButton', background='#4E4E4E', foreground='white', font=('Arial', 10))
+style.configure('TLabel', background='#2E2E2E', foreground='white', font=('Arial', 10))
+style.configure('TEntry', fieldbackground='#3E3E3E', foreground='white', font=('Arial', 10))
+style.configure('TFrame', background='#F5F5F5')  # Cập nhật background cho Frame
+
 
 # Tab 1: Phân bố theo phòng ban
 tab_department = ttk.Frame(notebook)
 notebook.add(tab_department, text="Phân bố nhân sự theo phòng ban")
+# Frame nội dung cho Tab 1
+frame_department = ttk.Frame(tab_department, padding=10)
+frame_department.pack(fill='both', expand=True)  # Căn giữa Frame
+frame_department.place(relx=0.5, rely=0.5, anchor='center')  # Căn giữa toàn bộ Frame
 
-Label(tab_department, text="Nhập số lượng phòng ban muốn hiển thị:").pack(pady=5)
+Label(frame_department, text="Nhập số lượng phòng ban muốn hiển thị:").pack(pady=5)
 department_top_n_var = IntVar()
-Entry(tab_department, textvariable=department_top_n_var).pack(pady=5)
+Entry(frame_department, textvariable=department_top_n_var).pack(pady=5)
 
 # Thứ tự sắp xếp
-Label(tab_department, text="Chọn thứ tự sắp xếp:").pack(pady=5)
+Label(frame_department, text="Chọn thứ tự sắp xếp:").pack(pady=5)
 department_order_var = StringVar(value='DESC')
-ttk.Radiobutton(tab_department, text="Tăng dần", variable=department_order_var, value='ASC').pack()
-ttk.Radiobutton(tab_department, text="Giảm dần", variable=department_order_var, value='DESC').pack()
+ttk.Radiobutton(frame_department, text="Tăng dần", variable=department_order_var, value='ASC').pack(pady=5)
+ttk.Radiobutton(frame_department, text="Giảm dần", variable=department_order_var, value='DESC').pack(pady=5)
 
-Button(tab_department, text="Hiển thị biểu đồ", command=show_employee_distribution_by_department).pack(pady=20)
+Button(frame_department, text="Hiển thị biểu đồ", command=show_employee_distribution_by_department).pack(pady=20)
 
 
 # Tab 2: Phân bố theo độ tuổi
 tab_age = ttk.Frame(notebook)
 notebook.add(tab_age, text="Phân bố nhân sự theo độ tuổi")
+# Frame nội dung cho Tab 2
+frame_age = ttk.Frame(tab_age, padding=10)
+frame_age.pack(fill='both', expand=True)  # Căn giữa Frame
+frame_age.place(relx=0.5, rely=0.5, anchor='center')  # Căn giữa toàn bộ Frame
 
-Label(tab_age, text="Nhập độ tuổi bắt đầu:").pack(pady=5)
+Label(frame_age, text="Nhập độ tuổi bắt đầu:").pack(pady=5)
 age_from_var = IntVar(value=20)  # Giá trị mặc định
-Entry(tab_age, textvariable=age_from_var).pack(pady=5)
+Entry(frame_age, textvariable=age_from_var).pack(pady=5)
 
-Label(tab_age, text="Nhập độ tuổi kết thúc:").pack(pady=5)
+Label(frame_age, text="Nhập độ tuổi kết thúc:").pack(pady=5)
 age_to_var = IntVar(value=50)  # Giá trị mặc định
-Entry(tab_age, textvariable=age_to_var).pack(pady=5)
+Entry(frame_age, textvariable=age_to_var).pack(pady=5)
 
-Label(tab_age, text="Chọn thứ tự sắp xếp:").pack(pady=5)
+Label(frame_age, text="Chọn thứ tự sắp xếp:").pack(pady=5)
 age_order_var = StringVar(value='DESC')
-ttk.Radiobutton(tab_age, text="Tăng dần", variable=age_order_var, value='ASC').pack()
-ttk.Radiobutton(tab_age, text="Giảm dần", variable=age_order_var, value='DESC').pack()
+ttk.Radiobutton(frame_age, text="Tăng dần", variable=age_order_var, value='ASC').pack(pady=5)
+ttk.Radiobutton(frame_age, text="Giảm dần", variable=age_order_var, value='DESC').pack(pady=5)
 
-Button(tab_age, text="Hiển thị biểu đồ", command=show_employee_age_distribution).pack(pady=20)
+Button(frame_age, text="Hiển thị biểu đồ", command=show_employee_age_distribution).pack(pady=20)
 
 
 # Tab 3: Đánh giá hiệu suất nhân viên
 tab_performance = ttk.Frame(notebook)
 notebook.add(tab_performance, text="Đánh giá hiệu suất của nhân viên")
 
+# Frame nội dung cho Tab 3
+frame_performance = ttk.Frame(tab_performance, padding=10)
+frame_performance.pack(fill='both', expand=True)  # Căn giữa Frame
+frame_performance.place(relx=0.5, rely=0.5, anchor='center')  # Căn giữa toàn bộ Frame
+
 # Thứ tự sắp xếp
-Label(tab_performance, text="Chọn thứ tự sắp xếp:").pack(pady=5)
+Label(frame_performance, text="Chọn thứ tự sắp xếp:").pack(pady=5)
 performance_order_var = StringVar(value='DESC')
-ttk.Radiobutton(tab_performance, text="Tăng dần", variable=performance_order_var, value='ASC').pack()
-ttk.Radiobutton(tab_performance, text="Giảm dần", variable=performance_order_var, value='DESC').pack()
+ttk.Radiobutton(frame_performance, text="Tăng dần", variable=performance_order_var, value='ASC').pack(pady=5)
+ttk.Radiobutton(frame_performance, text="Giảm dần", variable=performance_order_var, value='DESC').pack(pady=5)
 
 # Số lượng nhân viên
-Label(tab_performance, text="Nhập số lượng nhân viên muốn hiển thị:").pack(pady=5)
+Label(frame_performance, text="Nhập số lượng nhân viên muốn hiển thị:").pack(pady=5)
 performance_top_n_var = IntVar(value=10)
-Entry(tab_performance, textvariable=performance_top_n_var).pack(pady=5)
+Entry(frame_performance, textvariable=performance_top_n_var).pack(pady=5)
 
 # Chọn năm hoặc tất cả các năm
-Label(tab_performance, text="Nhập năm (để trống để xem tất cả các năm):").pack(pady=5)
+Label(frame_performance, text="Nhập năm (để trống để xem tất cả các năm):").pack(pady=5)
 performance_year_var = StringVar()  # Sử dụng StringVar để cho phép nhập trống
-Entry(tab_performance, textvariable=performance_year_var).pack(pady=5)
+Entry(frame_performance, textvariable=performance_year_var).pack(pady=5)
 
-Button(tab_performance, text="Hiển thị biểu đồ", command=show_performance_evaluations_with_order).pack(pady=20)
+Button(frame_performance, text="Hiển thị biểu đồ", command=show_performance_evaluations_with_order).pack(pady=20)
 
 # Tab 4: Tham gia chương trình đào tạo
 tab_training = ttk.Frame(notebook)
 notebook.add(tab_training, text="Đào tạo và phát triển")
+# Frame nội dung cho Tab 4
+frame_training = ttk.Frame(tab_training, padding=10)
+frame_training.pack(fill='both', expand=True)  # Căn giữa Frame
+frame_training.place(relx=0.5, rely=0.5, anchor='center')  # Căn giữa toàn bộ Frame
 
 # Nhập số lượng chương trình muốn hiển thị
-Label(tab_training, text="Nhập số lượng CTĐT muốn hiển thị:").pack(pady=5)
+Label(frame_training, text="Nhập số lượng CTĐT muốn hiển thị:").pack(pady=5)
 training_top_n_var = IntVar()
-Entry(tab_training, textvariable=training_top_n_var).pack(pady=5)
+Entry(frame_training, textvariable=training_top_n_var).pack(pady=5)
 
 # Thứ tự sắp xếp
-Label(tab_training, text="Chọn thứ tự sắp xếp theo số lượng tham gia:").pack(pady=5)
+Label(frame_training, text="Chọn thứ tự sắp xếp theo số lượng tham gia:").pack(pady=5)
 training_order_var = StringVar(value='DESC')  # Mặc định là giảm dần
-ttk.Radiobutton(tab_training, text="Tăng dần", variable=training_order_var, value='ASC').pack()
-ttk.Radiobutton(tab_training, text="Giảm dần", variable=training_order_var, value='DESC').pack()
+ttk.Radiobutton(frame_training, text="Tăng dần", variable=training_order_var, value='ASC').pack(pady=5)
+ttk.Radiobutton(frame_training, text="Giảm dần", variable=training_order_var, value='DESC').pack(pady=5)
 
 # Hiển thị biểu đồ
-Button(tab_training, text="Hiển thị biểu đồ", command=show_training_programs).pack(pady=20)
+Button(frame_training, text="Hiển thị biểu đồ", command=show_training_programs).pack(pady=20)
 
 # Tab 5: Thâm niên nhân viên
 tab_seniority = ttk.Frame(notebook)
 notebook.add(tab_seniority, text="Số lượng nhân viên theo cấp độ thâm niên")
+# Frame nội dung cho Tab 5
+frame_seniority = ttk.Frame(tab_seniority, padding=10)
+frame_seniority.pack(fill='both', expand=True)  # Căn giữa Frame
+frame_seniority.place(relx=0.5, rely=0.5, anchor='center')  # Căn giữa toàn bộ Frame
 
-Button(tab_seniority, text="Hiển thị biểu đồ", command=show_employee_seniority).pack(pady=20)
+# Thêm Radiobutton cho thứ tự sắp xếp
+Label(frame_seniority, text="Chọn thứ tự sắp xếp theo số lượng nhân viên:").pack(pady=5)
+
+# Biến để lưu trạng thái của lựa chọn thứ tự sắp xếp
+seniority_order_var = StringVar(value='DESC')  # Mặc định là giảm dần
+
+# Các nút Radiobutton cho lựa chọn thứ tự sắp xếp
+ttk.Radiobutton(frame_seniority, text="Tăng dần", variable=seniority_order_var, value='ASC').pack(pady=5)
+ttk.Radiobutton(frame_seniority, text="Giảm dần", variable=seniority_order_var, value='DESC').pack(pady=5)
+
+
+Button(frame_seniority, text="Hiển thị biểu đồ", command=show_employee_seniority).pack(pady=20)
 
 # Hiển thị các tab
 notebook.pack(expand=True, fill='both')
