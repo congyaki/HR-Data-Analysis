@@ -6,6 +6,8 @@ from tkinter import Tk, Label, Button, Entry, IntVar, StringVar, messagebox, ttk
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 from matplotlib.ticker import MaxNLocator
+
+
 # Kết nối cơ sở dữ liệu
 def connect_to_db():
     conn = pyodbc.connect(
@@ -40,10 +42,9 @@ def get_employee_age_distribution(conn, age_from, age_to, order_by='DESC'):
     ORDER BY EmployeeCount {order_by};
     """
     df = pd.read_sql(query, conn)
-    print(df)
+    # print(df)
 
     return df
-
 
 
 def get_performance_evaluations(conn, year=None, order_by='DESC', top_n=10):
@@ -77,29 +78,17 @@ def get_performance_evaluations(conn, year=None, order_by='DESC', top_n=10):
     return df
 
 
-
-
-
 def get_training_programs(conn, top_n, order_by='DESC'):
     query = f"""
-    SELECT tp.ProgramName, COUNT(et.EmployeeId) AS ParticipationCount
+    SELECT TOP ({top_n}) tp.ProgramName, COUNT(et.EmployeeId) AS ParticipationCount
     FROM TrainingPrograms tp
     JOIN EmployeeTraining et ON tp.ProgramId = et.ProgramId
     GROUP BY tp.ProgramName
-    ORDER BY ParticipationCount {order_by}
-    OFFSET 0 ROWS FETCH NEXT {top_n} ROWS ONLY;
+    ORDER BY ParticipationCount {order_by};
     """
     df = pd.read_sql(query, conn)
     return df
 
-
-def get_seniority_level_descriptions(conn):
-    query = """
-    SELECT LevelName, Description
-    FROM SeniorityLevels
-    """
-    df = pd.read_sql(query, conn)
-    return df
 
 def get_employee_seniority(conn, order='DESC'):
     query = f"""
@@ -111,7 +100,6 @@ def get_employee_seniority(conn, order='DESC'):
     """
     df = pd.read_sql(query, conn)
     return df
-
 
 
 def plot_employee_distribution_by_department(df):
@@ -148,8 +136,6 @@ def plot_employee_distribution_by_department(df):
     plt.tight_layout()  # Cải thiện việc căn chỉnh các phần tử của biểu đồ
 
     plt.show()
-
-
 
 
 def plot_employee_age_distribution_bar(df, order_by='DESC'):
@@ -197,9 +183,6 @@ def plot_employee_age_distribution_bar(df, order_by='DESC'):
     plt.show()
 
 
-
-
-
 def plot_performance_evaluations(df, order_by='DESC'):
     # Sắp xếp dữ liệu theo thứ tự do người dùng chọn
     df = df.sort_values(by='AverageScore', ascending=(order_by == 'ASC'))
@@ -233,7 +216,6 @@ def plot_performance_evaluations(df, order_by='DESC'):
     plt.show()
 
 
-
 def plot_training_programs(df):
     plt.figure(figsize=(12, 8))  # Kích thước lớn hơn cho biểu đồ đẹp hơn
     # Sử dụng bảng màu 'coolwarm' và tăng độ dày đường viền của cột
@@ -262,7 +244,6 @@ def plot_training_programs(df):
     # Hiển thị biểu đồ
     plt.tight_layout()
     plt.show()
-
 
 
 def plot_employee_seniority(df):
@@ -306,7 +287,6 @@ def show_employee_distribution_by_department():
         plot_employee_distribution_by_department(df)
     except Exception as e:
         messagebox.showerror("Lỗi", str(e))
-
 
 
 def show_employee_age_distribution():
@@ -370,8 +350,6 @@ def show_performance_evaluations_with_order():
         messagebox.showerror("Lỗi", str(e))
 
 
-
-
 def show_training_programs():
     try:
         top_n = int(training_top_n_var.get())
@@ -384,11 +362,11 @@ def show_training_programs():
         messagebox.showerror("Lỗi", str(e))
 
 
-
 def show_employee_seniority():
     try:
         conn = connect_to_db()
-        df = get_employee_seniority(conn)
+        order = seniority_order_var.get()
+        df = get_employee_seniority(conn, order)
         conn.close()
         plot_employee_seniority(df)
     except Exception as e:
@@ -510,7 +488,7 @@ Button(frame_training, text="Hiển thị biểu đồ", command=show_training_p
 
 # Tab 5: Thâm niên nhân viên
 tab_seniority = ttk.Frame(notebook)
-notebook.add(tab_seniority, text="Số lượng nhân viên theo cấp độ thâm niên")
+notebook.add(tab_seniority, text="phân bố nhân viên theo cấp độ thâm niên")
 # Frame nội dung cho Tab 5
 frame_seniority = ttk.Frame(tab_seniority, padding=10)
 frame_seniority.pack(fill='both', expand=True)  # Căn giữa Frame
